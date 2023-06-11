@@ -12,15 +12,50 @@ public class Weapon : MonoBehaviour
     
     float timer;
     Player player;
+
+    public void Init(ItemData data)
+    {
+        // set basic data
+        name = "Weapon " + data.itemId;
+        transform.parent = player.transform;
+        transform.localPosition = Vector3.zero;
+
+        // set properties
+        id = data.itemId;
+        damage = data.baseDamage;
+        count = data.baseCount;
+
+        for (int idx = 0; idx < GameManager.instance.pool.prefabs.Length; ++idx)
+        {
+            if (data.projectile == GameManager.instance.pool.prefabs[idx])
+            {
+                prefabId = idx;
+                break;
+            }
+        }
+
+        switch(id)
+        {
+            case 0:
+                speed = 150;
+                Arrange();
+                break;
+            default:
+                speed = 0.3f;
+                break;
+        }
+
+        // set hands
+        Hand hand = player.hands[(int)data.itemType];
+        hand.spriter.sprite = data.hand;
+        hand.gameObject.SetActive(true);
+
+        player.BroadcastMessage("ApplyGear", SendMessageOptions.DontRequireReceiver);
+    }
     
     void Awake()
     {
-        player = GetComponentInParent<Player>();
-    }
-
-    void Start()
-    {
-        Init();
+        player = GameManager.instance.player;
     }
 
     void Update()
@@ -49,20 +84,8 @@ public class Weapon : MonoBehaviour
         this.count += count;
         if (id == 0)
             Arrange();
-    }
-
-    public void Init()
-    {
-        switch(id)
-        {
-            case 0:
-                speed = 150;
-                Arrange();
-                break;
-            default:
-                speed = 0.3f;
-                break;
-        }
+        
+        player.BroadcastMessage("ApplyGear", SendMessageOptions.DontRequireReceiver);
     }
 
     void Arrange()
